@@ -1,0 +1,390 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>WDSF Controller API</title>
+        <script language="javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+        <script language="javascript" src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular.min.js"></script>
+        <script language="javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/2.3.0/js/bootstrap.min.js"></script>
+
+        <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/2.3.0/css/bootstrap.min.css">
+
+        <script language="javascript">
+            var FirstCtrl = function($scope, $http, $q){
+                $scope.tournamentsUrl = '/tournament';
+                $scope.competitionsUrl = '/competition';
+                $scope.participantsUrl = '/participant';
+                $scope.couplesUrl = '/couple';
+                $scope.personsUrl = '/person';
+
+                $scope.auth = {login: 'ilson', password: 'podolko'};
+                $scope.lang = 'en';
+                $scope.languages = [{code: 'ru', name: 'Русский'}, {code: 'en', name: 'English'}];
+
+                $scope.regData = {};
+                
+                $scope.getAuthorization = function(){
+                    return 'Basic ' + window.btoa($scope.auth.login + ':' + $scope.auth.password);
+                };
+
+                $scope.restCall = function(method, url, data, headers){
+                    var deferred = $q.defer();
+                    
+                    $http({
+                            method: method, 
+                            url: 'http://localhost:57772/csp/wdsfcontroller/admin' + url, 
+                            data: data,
+                            headers: headers
+                        }).
+                        success(function(data, status, headers, config){
+                            deferred.resolve({data: data, status: status, headers: headers, config: config});
+                        }).
+                        error(function(data, status, headers, config){
+                            deferred.reject({data: data, status: status, headers: headers, config: config});
+                        });
+
+                    return deferred.promise
+                }
+
+                $scope.postSomeData = function(someUrl, someData, modelName){
+                    $scope.restCall('POST', someUrl, someData, {Authorization: $scope.getAuthorization(), 'Accept-Language': $scope.lang}).then(
+                        function(response){
+                            $scope[modelName + 'Response'] = response;
+                        },
+                        function(reason){
+                            $scope[modelName + 'Response'] = reason;
+                        }); 
+                };
+
+                $scope.getSomeData = function(someUrl, nameArray){
+                    $scope.restCall('GET', someUrl, null, {Authorization: $scope.getAuthorization(), 'Accept-Language': $scope.lang}).then(
+                        function(response){
+                            // get many items
+                            if (response.data[nameArray]){
+                                $scope[nameArray] = response.data[nameArray]    
+                            }
+                            // get single by id
+                            else{
+                                $scope[nameArray] = [response.data];   
+                            }
+
+                            //example: $scope.competitionsResponse = data; 
+                            $scope[nameArray + 'Response'] = response;
+                        },
+                        function(reason){
+                            $scope[nameArray + 'Response'] = reason;
+                        });  
+                };
+
+                $scope.getSomeData($scope.tournamentsUrl, 'tournaments');
+                $scope.getSomeData($scope.competitionsUrl, 'competitions');
+                $scope.getSomeData($scope.participantsUrl, 'participants');
+                $scope.getSomeData($scope.couplesUrl, 'couples');
+                $scope.getSomeData($scope.personsUrl, 'persons');
+            };
+        </script>
+    </head>
+    <body ng-app ng-controller="FirstCtrl">
+        <br>
+        <div class="container-fluid">
+            <div class="bs-docs-example">
+                <ul id="myTab" class="nav nav-tabs">
+                    <li class="active"><a href="#registration" data-toggle="tab">Registration / Deregistration</a></li>
+                    <li class=""><a href="#tournaments" data-toggle="tab">Tournaments</a></li>
+                    <li class=""><a href="#competitions" data-toggle="tab">Competitions</a></li>
+                    <li class=""><a href="#participants" data-toggle="tab">Participants</a></li>
+                    <li class=""><a href="#couples" data-toggle="tab">Couples</a></li>
+                    <li class=""><a href="#persons" data-toggle="tab">Persons</a></li>
+                </ul>
+                <div id="myTabContent" class="tab-content">
+                    <!-- REGISTRATION -->
+                    <div class="tab-pane active" id="registration">
+                        <form name="formFirst">
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <div class="row-fluid">
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Login</label>
+                                                <div class="controls">
+                                                    <input class="span12" type="text" ng-model="auth.login" required></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Password</label>
+                                                <div class="controls">
+                                                    <input class="span12" type="text" ng-model="auth.password" required></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Response language</label>
+                                                <div class="controls">
+                                                    <select class="span12" ng-model="lang" ng-options="lang.code as lang.name for lang in languages" required>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row-fluid">
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Competition Id</label>
+                                                <div class="controls">
+                                                    <input class="span12" type="text" ng-model="regData.competitionId" required></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Man number</label>
+                                                <div class="controls">
+                                                    <input class="span12" type="text" ng-model="regData.manNumber"></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="span4">
+                                            <div class="control-group">
+                                                <label class="control-label">Woman number</label>
+                                                <div class="controls">
+                                                    <input class="span12" type="text" ng-model="regData.womanNumber"></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn" ng-click="postSomeData('/registration', regData, 'reg')" ng-disabled="formFirst.$invalid">Registration</button>
+                                    <button type="button" class="btn" ng-click="postSomeData('/deregistration', regData, 'reg')" ng-disabled="formFirst.$invalid">Deregistration</button>
+                                </div>
+                                <div class="span6">
+                                    <div class="row-fluid" ng-show="regResponse">
+                                        HTTP Status: {{regResponse.status}}, method: {{regResponse.config.method}}, url: {{regResponse.config.url}}
+                                        <pre>{{regResponse.data|json}}</pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </form> 
+                    </div>
+                    <!-- Tournaments -->
+                    <div class="tab-pane fade" id="tournaments">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Tournaments url. Filters: ?from=2014-01-01&to=2014-04-01. For get one: /tournament/:id</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="tournamentsUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(tournamentsUrl, 'tournaments')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Id</th>
+                                    <th>Country</th>
+                                    <th style="width: 80px;">Start date</th>
+                                    <th style="width: 80px;">End date</th>
+                                    <th>Disciplines</th>
+                                    <th>Types</th>
+                                    <th>Age groups</th>
+                                    <th>Competitions</th>
+                                </tr>    
+                                <tr ng-repeat="tr in tournaments">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="tr.id"></td>
+                                    <td ng-bind="tr.country"></td>
+                                    <td ng-bind="tr.startDate"></td>
+                                    <td ng-bind="tr.endDate"></td>
+                                    <td ng-bind="tr.disciplines"></td>
+                                    <td ng-bind="tr.types"></td>
+                                    <td ng-bind="tr.ageGroups"></td>
+                                    <td ng-bind="tr.competitionsCount"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="tournamentsResponse">
+                            HTTP Status: {{tournamentsResponse.status}}, method: {{tournamentsResponse.config.method}}, url: {{tournamentsResponse.config.url}}
+                            <pre>{{tournamentsResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- COMPETITIONS -->
+                    <div class="tab-pane fade" id="competitions">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Competitions url. Filters: ?from=2014-01-01&to=2014-04-01&status='Closed'. For get one: /competition/:id</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="competitionsUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(competitionsUrl, 'competitions')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Id</th>
+                                    <th>Tourn.Id</th>
+                                    <th>Country, Location</th>
+                                    <th>Discipline</th>
+                                    <th>Type</th>
+                                    <th>Division</th>
+                                    <th style="width: 80px;">Date</th>
+                                    <th>Status</th>
+                                    <th>Age group</th>
+                                    <th style="width: 145px;">LastSyncWDSF</th>
+                                    <th style="width: 145px;">WDSFLastModified</th>
+                                </tr>    
+                                <tr ng-repeat="cmp in competitions">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="cmp.id"></td>
+                                    <td ng-bind="cmp.tournament.id"></td>
+                                    <td ng-bind="cmp.country + ', ' + cmp.location"></td>
+                                    <td ng-bind="cmp.discipline"></td>
+                                    <td ng-bind="cmp.type"></td>
+                                    <td ng-bind="cmp.division"></td>
+                                    <td ng-bind="cmp.date"></td>
+                                    <td ng-bind="cmp.status"></td>
+                                    <td ng-bind="cmp.ageGroup"></td>
+                                    <td ng-bind="cmp.lastSyncWDSF"></td>
+                                    <td ng-bind="cmp.lastModifiedWDSF"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="competitionsResponse">
+                            HTTP Status: {{competitionsResponse.status}}, method: {{competitionsResponse.config.method}}, url: {{competitionsResponse.config.url}}
+                            <pre>{{competitionsResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- PARTICIPANTS -->
+                    <div class="tab-pane fade" id="participants">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Participants url. Filter: ?competition=:cmpId. For get one: /participant/:id</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="participantsUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(participantsUrl, 'participants')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Id</th>
+                                    <th>Competition Id, Country, Date</th>
+                                    <th>Couple Id</th>
+                                    <th>Couple, Man - woman</th>
+                                    <th>Athlete Id</th>
+                                    <th>Athlete, Full name</th>
+                                </tr>    
+                                <tr ng-repeat="p in participants">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="p.id"></td>
+                                    <td ng-bind="p.competition.id + ', ' + p.competition.country + ', ' + p.competition.date"></td>
+                                    <td ng-bind="p.couple ? p.couple.id : '--- is solo ---'"></td>
+                                    <td ng-bind="p.couple ? (p.couple.man.surname + ' - ' + p.couple.woman.surname + ' (' + p.couple.man.id + ' - ' + p.couple.woman.id + ')') : '--- is solo ---'"></td>
+                                    <td ng-bind="p.athlete ? p.athlete.id : '--- is not solo ---'"></td>
+                                    <td ng-bind="p.athlete ? (p.athlete.surname + ' ' + p.athlete.name) : '--- is not solo ---'"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="participantsResponse">
+                            HTTP Status: {{participantsResponse.status}}, method: {{participantsResponse.config.method}}, url: {{participantsResponse.config.url}}
+                            <pre>{{participantsResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- COUPLES -->
+                    <div class="tab-pane fade" id="couples">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Couples url. Filter: ?min=:number - this is man|woman number. For get one by numbers: /couple?manNumber=:man&womanNumber=:woman.</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="couplesUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(couplesUrl, 'couples')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Id</th>
+                                    <th>Full name</th>
+                                    <th>Man and woman numbers</th>
+                                    <th>Division</th>
+                                    <th>Age group</th>
+                                    <th>Status</th>
+                                    <th>LastSyncWDSF</th>
+                                </tr>    
+                                <tr ng-repeat="c in couples">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="c.id"></td>
+                                    <td ng-bind="c.man.surname + ' ' + c.man.name + ' - ' + c.woman.surname + ' ' + c.woman.name"></td>
+                                    <td ng-bind="c.man.id + ' - ' + c.woman.id"></td>
+                                    <td ng-bind="c.division"></td>
+                                    <td ng-bind="c.ageGroup"></td>
+                                    <td ng-bind="c.status"></td>
+                                    <td ng-bind="c.lastSyncWDSF"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="couplesResponse">
+                            HTTP Status: {{couplesResponse.status}}, method: {{couplesResponse.config.method}}, url: {{couplesResponse.config.url}}
+                            <pre>{{couplesResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- PERSONS -->
+                    <div class="tab-pane fade" id="persons">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Persons url. For get one: /person/:id</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="personsUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(personsUrl, 'persons')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row-fluid">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Id</th>
+                                    <th>Full name</th>
+                                    <th>Sex</th>
+                                    <th>Country</th>
+                                    <th>Age group</th>
+                                    <th>LastSyncWDSF</th>
+                                </tr>    
+                                <tr ng-repeat="p in persons">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="p.id"></td>
+                                    <td ng-bind="p.surname + ' ' + p.name"></td>
+                                    <td ng-bind="p.sex"></td>
+                                    <td ng-bind="p.country"></td>
+                                    <td ng-bind="p.ageGroup"></td>
+                                    <td ng-bind="p.lastSyncWDSF"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="personsResponse">
+                            HTTP Status: {{personsResponse.status}}, method: {{personsResponse.config.method}}, url: {{personsResponse.config.url}}
+                            <pre>{{personsResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
