@@ -8,7 +8,15 @@
         <script language="javascript" src="http://maxcdn.bootstrapcdn.com/bootstrap/2.3.0/js/bootstrap.min.js"></script>
 
         <link rel="stylesheet" type="text/css" href="http://maxcdn.bootstrapcdn.com/bootstrap/2.3.0/css/bootstrap.min.css">
-
+        <style>
+            .manyItemsBlock{
+                height: 300px;
+                overflow-x: auto; 
+                border-top: 1px solid #dddddd;
+                border-bottom: 1px solid #dddddd;
+                margin-bottom: 10px;
+            }
+        </style>
         <script language="javascript">
             var FirstCtrl = function($scope, $http, $q){
                 $scope.tournamentsUrl = '/tournament';
@@ -16,8 +24,10 @@
                 $scope.participantsUrl = '/participant';
                 $scope.couplesUrl = '/couple';
                 $scope.personsUrl = '/person';
+                $scope.countriesUrl = '/country';
+                $scope.ageGroupsUrl = '/ageGroup';
 
-                $scope.auth = {login: '', password: ''};
+                $scope.auth = {login: 'ilson', password: 'podolko'};
                 $scope.lang = 'en';
                 $scope.languages = [{code: 'ru', name: 'Русский'}, {code: 'en', name: 'English'}];
 
@@ -76,11 +86,15 @@
                         });  
                 };
 
-                $scope.getSomeData($scope.tournamentsUrl, 'tournaments');
-                $scope.getSomeData($scope.competitionsUrl, 'competitions');
-                $scope.getSomeData($scope.participantsUrl, 'participants');
-                $scope.getSomeData($scope.couplesUrl, 'couples');
-                $scope.getSomeData($scope.personsUrl, 'persons');
+                if ($scope.auth.login != '' && $scope.auth.password != ''){
+                    $scope.getSomeData($scope.tournamentsUrl, 'tournaments');
+                    $scope.getSomeData($scope.competitionsUrl, 'competitions');
+                    $scope.getSomeData($scope.participantsUrl, 'participants');
+                    $scope.getSomeData($scope.couplesUrl, 'couples');
+                    $scope.getSomeData($scope.personsUrl, 'persons');
+                    $scope.getSomeData($scope.countriesUrl, 'countries');
+                    $scope.getSomeData($scope.ageGroupsUrl, 'ageGroups');
+                }
             };
         </script>
     </head>
@@ -95,6 +109,8 @@
                     <li class=""><a href="#participants" data-toggle="tab">Participants</a></li>
                     <li class=""><a href="#couples" data-toggle="tab">Couples</a></li>
                     <li class=""><a href="#persons" data-toggle="tab">Persons</a></li>
+                    <li class=""><a href="#countries" data-toggle="tab">Countries</a></li>
+                    <li class=""><a href="#ageGroups" data-toggle="tab">Age groups</a></li>
                 </ul>
                 <div id="myTabContent" class="tab-content">
                     <!-- REGISTRATION -->
@@ -180,7 +196,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
+                        <div ng-class="'row-fluid' + (tournaments.length > 7 ? ' manyItemsBlock' : '')">
                             <table class="table table-bordered table-hover">
                                 <tr>
                                     <th>#</th>
@@ -224,7 +240,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
+                        <div ng-class="'row-fluid' + (competitions.length > 7 ? ' manyItemsBlock' : '')">
                             <table class="table table-bordered table-hover">
                                 <tr>
                                     <th>#</th>
@@ -274,7 +290,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
+                        <div ng-class="'row-fluid' + (participants.length > 7 ? ' manyItemsBlock' : '')">
                             <table class="table table-bordered table-hover">
                                 <tr>
                                     <th>#</th>
@@ -314,7 +330,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
+                        <div ng-class="'row-fluid' + (couples.length > 7 ? ' manyItemsBlock' : '')">
                             <table class="table table-bordered table-hover">
                                 <tr>
                                     <th>#</th>
@@ -356,7 +372,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="row-fluid">
+                        <div ng-class="'row-fluid' + (persons.length > 7 ? ' manyItemsBlock' : '')">
                             <table class="table table-bordered table-hover">
                                 <tr>
                                     <th>#</th>
@@ -381,6 +397,78 @@
                         <div class="row-fluid" ng-show="personsResponse">
                             HTTP Status: {{personsResponse.status}}, method: {{personsResponse.config.method}}, url: {{personsResponse.config.url}}
                             <pre>{{personsResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- COUNTRIES -->
+                    <div class="tab-pane fade" id="countries">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Countries url</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="countriesUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(countriesUrl, 'countries')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-class="'row-fluid' + (countries.length > 7 ? ' manyItemsBlock' : '')">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                </tr>    
+                                <tr ng-repeat="p in countries">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="p.name"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="countriesResponse">
+                            HTTP Status: {{countriesResponse.status}}, method: {{countriesResponse.config.method}}, url: {{countriesResponse.config.url}}
+                            <pre>{{countriesResponse.data|json}}</pre>
+                        </div>
+                    </div>
+                    <!-- AGE GROUPS -->
+                    <div class="tab-pane fade" id="ageGroups">
+                        <div class="row-fluid">
+                            <div class="control-group">
+                                <label class="control-label">Age groups url</label>
+                                <div class="controls">
+                                    <div class="input-append">
+                                      <input style="width: 500px;" id="appendedInputButton" type="text" ng-model="ageGroupsUrl">
+                                      <button class="btn" type="button" ng-click="getSomeData(ageGroupsUrl, 'ageGroups')">Get</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-class="'row-fluid' + (ageGroups.length > 7 ? ' manyItemsBlock' : '')">
+                            <table class="table table-bordered table-hover">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>From age</th>
+                                    <th>To age</th>
+                                    <th>Min dob</th>
+                                    <th>Max dob</th>
+                                    <th>Allowed to compete in competition of class</th>
+                                    <th>Divisions</th>
+                                </tr>    
+                                <tr ng-repeat="ag in ageGroups">
+                                    <td ng-bind="$index + 1"></td>
+                                    <td ng-bind="ag.name"></td>
+                                    <td ng-bind="ag.fromAge"></td>
+                                    <td ng-bind="ag.toAge"></td>
+                                    <td ng-bind="ag.minDob"></td>
+                                    <td ng-bind="ag.maxDob"></td>
+                                    <td ng-bind="ag.allowedToDance"></td>
+                                    <td ng-bind="ag.division"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="row-fluid" ng-show="ageGroupsResponse">
+                            HTTP Status: {{ageGroupsResponse.status}}, method: {{ageGroupsResponse.config.method}}, url: {{ageGroupsResponse.config.url}}
+                            <pre>{{ageGroupsResponse.data|json}}</pre>
                         </div>
                     </div>
                 </div>
